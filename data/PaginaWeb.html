@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WEARABLE HIOT</title>
+  <style>
+    body {
+      background-image: url('https://static.vecteezy.com/system/resources/previews/009/743/046/non_2x/pastel-gradient-background-in-sky-blue-color-with-relaxing-pattern-vector.jpg');
+      background-size: cover; 
+      background-position: center; 
+      height: 100vh; 
+      margin: 0;
+	    justify-content: center;
+	    align-items: center;
+    }
+    .cuadroTemp{
+      margin:auto; 
+      border: 4px solid #97acff; 
+      border-radius: 7px; 
+      text-align: center; 
+      font-size: 20px; 
+      font-family: 'Times New Roman', Times, serif; 
+      height: 100px; 
+      width: 330px
+    }
+    .cuadroUmbral{
+      margin:auto; 
+      border: 4px solid #ffa44e; 
+      border-radius: 7px; 
+      text-align: center; 
+      font-size: 20px; 
+      font-family: 'Times New Roman', Times, serif; 
+      height: 150px; 
+      width: 310px
+    }
+    .cuadroCaldera{
+      margin:auto; 
+      border: 4px solid #ff9393; 
+      border-radius: 7px; 
+      text-align: center; 
+      font-size: 20px; 
+      font-family: 'Times New Roman', Times, serif; 
+      height: 80px; 
+      width: 250px
+    }
+    .cuadroActualizar{
+      border-radius: 5px; 
+      font-size: 17px;
+      font-family: 'Times New Roman', Times, serif;
+      text-align: right;
+    }
+    .botonActualizar{
+      border-radius: 5px;
+      border-color: #007bff;
+      background-color: #5facff;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 17px;
+    }
+    .cuadroPromedio{
+      height: 300px; 
+      width: 600px; 
+      margin: auto; 
+      border-radius: 10px; 
+      border: 7px solid #ff8888;
+    }
+  </style>
+</head>
+
+<body>
+	<h1 style="text-align: center; font-family: 'Times New Roman', Times, serif;">TERMOSTATO ONLINE</h1>
+  
+  <div class="cuadroTemp">
+	  <p> TEMPERATURA: 25.00ºC</p>
+    <p> HUMEDAD: 40.00% </p>
+  </div>
+
+  <br>
+
+  <div class="cuadroCaldera"> 
+    <p>CALDERA ===> <img src="https://static.vecteezy.com/system/resources/previews/014/441/483/non_2x/snowflake-decorations-free-png.png" alt="Off" style="width:50px;height:50px;" id = "imagenCaldera"></p>
+  </div>
+
+  <br>
+
+  <div class="cuadroUmbral">
+    <p> UMBRAL DE TEMPERATURA</p>
+    <p id="umbralActual"> ACTUAL: 20.00 ºC</p>
+    <form action="/umbral" method="POST" >Nuevo:
+      <input class="cuadroActualizar" id = "Vumbral" size="5" name="Vumbral" type="text" placeholder=""  /> 
+      <input class="botonActualizar" type="submit" value="Actualizar" />
+  </div>
+
+  <br>
+
+  <div id="chartContainer" class="cuadroPromedio">
+  </div>
+
+  <script type="text/javascript">
+    function imagenCaldera(){
+      imagen = document.getElementById("imagenCaldera");
+      if(imagen.alt === "Off"){
+        imagen.src = "https://static.vecteezy.com/system/resources/previews/014/441/483/non_2x/snowflake-decorations-free-png.png";
+      }else{
+        imagen.src = "https://static.vecteezy.com/system/resources/previews/023/816/420/non_2x/cartoon-fire-effect-blaze-fire-free-free-png.png";
+      }
+    }
+	function actualizarValor() {
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				actualizarGrafico(this.responseText);
+			}
+		};
+		var esp8266IP = window.location.hostname;
+		xhttp.open("GET", "http://" + esp8266IP + "/actualizar", true);
+		xhttp.send();
+	}
+	function getColor(value){
+		if(value < 4){
+			return "green";
+		}else if(value >= 4 && value < 7){
+			return "yellow";
+		}else if(value >= 7 && value < 10){
+			return "orange";
+		}else{
+			return "red";
+		}
+	}
+  
+    function actualizarGrafico(data){
+      valores = data.split('\n');
+      var chart = new CanvasJS.Chart("chartContainer",
+        {
+          title:{
+          text: "Uso promedio semanal"   
+          },
+          axisY: {
+            title: "Horas",
+            minimum: 0,
+            maximum: 24
+          },
+		  axisX: {
+			title: "Dias"
+		  },
+          data: [
+          {        
+            type: "column", 
+            name: "series1",
+            dataPoints: [
+            { label: "L", y: parseInt(valores[0]), color: getColor(parseInt(valores[0]))},
+            { label: "M", y: parseInt(valores[1]), color: getColor(parseInt(valores[1]))},
+            { label: "X", y: parseInt(valores[2]), color: getColor(parseInt(valores[2]))},
+            { label: "J", y: parseInt(valores[3]), color: getColor(parseInt(valores[3]))},
+            { label: "V", y: parseInt(valores[4]), color: getColor(parseInt(valores[4]))},
+            { label: "S", y: parseInt(valores[5]), color: getColor(parseInt(valores[5]))},
+            { label: "D", y: parseInt(valores[6]), color: getColor(parseInt(valores[6]))}
+            ]
+          }
+          ],
+        });
+      
+        chart.render();
+    }
+
+    window.onload = function () {
+      actualizarValor();
+	  imagenCaldera();
+    }
+  </script>
+  <script type="text/javascript" src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
+</body>
+</html>
